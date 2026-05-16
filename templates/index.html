@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Money Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+
+        body {
+            background-color: lightblue;
+            font-family: "Comic Sans MS", cursive;
+            padding: 20px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logout-btn {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+
+        .nav {
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+
+        .nav a {
+            background: dodgerblue;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-right: 10px;
+            display: inline-block;
+        }
+
+        .container {
+            display: flex;
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .left, .right {
+            width: 50%;
+        }
+
+        input, select, button {
+            font-family: "Comic Sans MS", cursive;
+            padding: 8px;
+            margin: 5px;
+        }
+
+        input {
+            max-width: 140px;
+        }
+
+        button {
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+        }
+
+        .income-btn {
+            background: green;
+            color: white;
+        }
+
+        .expense-btn {
+            background: red;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: lightblue;
+            margin-bottom: 20px;
+        }
+
+        th {
+            background-color: skyblue;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .total {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        @media (max-width: 800px) {
+
+            .container {
+                flex-direction: column;
+            }
+
+            .left, .right {
+                width: 100%;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            input {
+                max-width: 120px;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="top-bar">
+
+    <h1>Money Manager - {{ username }}</h1>
+
+    <a class="logout-btn" href="/logout">
+        Logout
+    </a>
+
+</div>
+
+<div class="nav">
+
+    <a href="/?month={{ selected_month }}">
+        Monthly Overview
+    </a>
+
+    <a href="/monthly_summary?month={{ selected_month }}">
+        Monthly Summary
+    </a>
+
+</div>
+
+<div class="container">
+
+    <div class="left">
+
+        <h2>Add Transaction</h2>
+
+        <form method="POST">
+
+            <label>Date:</label><br>
+
+            <input
+                type="date"
+                name="date"
+                required
+            >
+
+            <br>
+
+            <label>Category:</label><br>
+
+            <input
+                list="expense_categories"
+                type="text"
+                name="category"
+                required
+            >
+
+            <datalist id="expense_categories">
+
+                {% for category in expense_categories %}
+
+                    <option value="{{ category.category }}">
+
+                {% endfor %}
+
+            </datalist>
+
+            <br>
+
+            <label>Amount:</label><br>
+
+            <input
+                type="number"
+                step="0.01"
+                name="amount"
+                required
+            >
+
+            <br>
+
+            <button
+                class="income-btn"
+                type="submit"
+                name="type"
+                value="income">
+
+                Add Income
+
+            </button>
+
+            <button
+                class="expense-btn"
+                type="submit"
+                name="type"
+                value="expense">
+
+                Add Expense
+
+            </button>
+
+        </form>
+
+    </div>
+
+    <div class="right">
+
+        <h2>Current Month</h2>
+
+        <form method="GET">
+
+            <select
+                name="month"
+                onchange="this.form.submit()"
+            >
+
+                {% for number, name in months %}
+
+                    <option
+                        value="{{ number }}"
+                        {% if number == selected_month %}selected{% endif %}
+                    >
+
+                        {{ name }}
+
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </form>
+
+        <h2>Income</h2>
+
+        <table>
+
+            <tr>
+
+                <th>Date</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Save</th>
+
+            </tr>
+
+            {% for income in incomes %}
+
+            <tr>
+
+                <form method="POST" action="/edit/{{ income.id }}">
+
+                    <td>
+
+                        <input
+                            type="date"
+                            name="date"
+                            value="{{ income.date }}"
+                        >
+
+                    </td>
+
+                    <td>
+
+                        <input
+                            type="text"
+                            name="category"
+                            value="{{ income.category }}"
+                        >
+
+                    </td>
+
+                    <td>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            name="amount"
+                            value="{{ income.amount }}"
+                        >
+
+                    </td>
+
+                    <td>
+
+                        <button type="submit">
+
+                            Save
+
+                        </button>
+
+                    </td>
+
+                </form>
+
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+        <div class="total">
+
+            Income Total:
+            ${{ "%.2f"|format(total_income) }}
+
+        </div>
+
+        <h2>Expenses</h2>
+
+        <table>
+
+            <tr>
+
+                <th>Date</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Balance</th>
+                <th>Save</th>
+
+            </tr>
+
+            {% set running = namespace(balance=total_income) %}
+
+            {% for expense in expenses %}
+
+                {% if expense.balance is not none %}
+
+                    {% set running.balance = expense.balance %}
+
+                {% else %}
+
+                    {% set running.balance = running.balance - expense.amount %}
+
+                {% endif %}
+
+                <tr>
+
+                    <form method="POST" action="/edit/{{ expense.id }}">
+
+                        <td>
+
+                            <input
+                                type="date"
+                                name="date"
+                                value="{{ expense.date }}"
+                            >
+
+                        </td>
+
+                        <td>
+
+                            <input
+                                list="expense_categories"
+                                type="text"
+                                name="category"
+                                value="{{ expense.category }}"
+                            >
+
+                        </td>
+
+                        <td>
+
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="amount"
+                                value="{{ expense.amount }}"
+                            >
+
+                        </td>
+
+                        <td>
+
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="balance"
+                                value="{{ running.balance }}"
+                            >
+
+                        </td>
+
+                        <td>
+
+                            <button type="submit">
+
+                                Save
+
+                            </button>
+
+                        </td>
+
+                    </form>
+
+                </tr>
+
+            {% endfor %}
+
+        </table>
+
+        <div class="total">
+
+            Expense Total:
+            ${{ "%.2f"|format(total_expenses) }}
+
+        </div>
+
+        <div class="total">
+
+            Money Left:
+            ${{ "%.2f"|format(balance) }}
+
+        </div>
+
+        <h2>Current Month Expense Summary</h2>
+
+        <table>
+
+            <tr>
+
+                <th>Date</th>
+                <th>Expense</th>
+                <th>Amount</th>
+                <th>New Balance</th>
+
+            </tr>
+
+            {% for item in expense_summary %}
+
+            <tr>
+
+                <td>{{ item.date }}</td>
+
+                <td>{{ item.category }}</td>
+
+                <td>
+                    ${{ "%.2f"|format(item.amount) }}
+                </td>
+
+                <td>
+                    ${{ "%.2f"|format(item.new_balance) }}
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3-Month Summary</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+
+        body {
+            background-color: lightblue;
+            font-family: "Comic Sans MS", cursive;
+            padding: 20px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logout-btn {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+
+        .nav {
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+
+        .nav a {
+            background: dodgerblue;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-right: 10px;
+            display: inline-block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: lightblue;
+            margin-bottom: 25px;
+        }
+
+        th {
+            background-color: skyblue;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .total {
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .month-title {
+            background-color: deepskyblue;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="top-bar">
+
+    <h1>3-Month Summary - {{ username }}</h1>
+
+    <a class="logout-btn" href="/logout">
+        Logout
+    </a>
+
+</div>
+
+<div class="nav">
+
+    <a href="/?month={{ selected_month }}">
+        Monthly Overview
+    </a>
+
+    <a href="/monthly_summary?month={{ selected_month }}">
+        Monthly Summary
+    </a>
+
+</div>
+
+<form method="GET">
+
+    <select
+        name="month"
+        onchange="this.form.submit()"
+    >
+
+        {% for number, name in months %}
+
+            <option
+                value="{{ number }}"
+                {% if number == selected_month %}selected{% endif %}
+            >
+
+                {{ name }}
+
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+</form>
+
+{% for number, name in months %}
+
+    {% if number >= selected_month and number <= selected_month + 2 %}
+
+        <div class="month-title">
+
+            <h2>{{ name }}</h2>
+
+        </div>
+
+        <h3>Income</h3>
+
+        <table>
+
+            <tr>
+
+                <th>Date</th>
+                <th>Income</th>
+                <th>Amount</th>
+
+            </tr>
+
+            {% set income_total = namespace(value=0) %}
+
+            {% for income in incomes %}
+
+                {% set income_month = income.date[5:7]|int %}
+
+                {% if income_month == number %}
+
+                    {% set income_total.value = income_total.value + income.amount %}
+
+                    <tr>
+
+                        <td>{{ income.date }}</td>
+
+                        <td>{{ income.category }}</td>
+
+                        <td>
+                            ${{ "%.2f"|format(income.amount) }}
+                        </td>
+
+                    </tr>
+
+                {% endif %}
+
+            {% endfor %}
+
+        </table>
+
+        <div class="total">
+
+            {{ name }} Income Total:
+            ${{ "%.2f"|format(income_total.value) }}
+
+        </div>
+
+        <h3>Expenses</h3>
+
+        <table>
+
+            <tr>
+
+                <th>Date</th>
+                <th>Expense</th>
+                <th>Amount</th>
+                <th>Balance</th>
+
+            </tr>
+
+            {% set expense_total = namespace(value=0) %}
+            {% set running = namespace(balance=income_total.value) %}
+
+            {% for expense in expenses %}
+
+                {% set expense_month = expense.date[5:7]|int %}
+
+                {% if expense_month == number %}
+
+                    {% set expense_total.value = expense_total.value + expense.amount %}
+
+                    {% if expense.balance is not none %}
+
+                        {% set running.balance = expense.balance %}
+
+                    {% else %}
+
+                        {% set running.balance = running.balance - expense.amount %}
+
+                    {% endif %}
+
+                    <tr>
+
+                        <td>{{ expense.date }}</td>
+
+                        <td>{{ expense.category }}</td>
+
+                        <td>
+                            ${{ "%.2f"|format(expense.amount) }}
+                        </td>
+
+                        <td>
+                            ${{ "%.2f"|format(running.balance) }}
+                        </td>
+
+                    </tr>
+
+                {% endif %}
+
+            {% endfor %}
+
+        </table>
+
+        <div class="total">
+
+            {{ name }} Expense Total:
+            ${{ "%.2f"|format(expense_total.value) }}
+
+        </div>
+
+        <div class="total">
+
+            {{ name }} Balance:
+            ${{ "%.2f"|format(income_total.value - expense_total.value) }}
+
+        </div>
+
+    {% endif %}
+
+{% endfor %}
+
+<div class="month-title">
+
+    <h2>3-Month Totals</h2>
+
+</div>
+
+<div class="total">
+
+    Total Income:
+    ${{ "%.2f"|format(total_income) }}
+
+</div>
+
+<div class="total">
+
+    Total Expenses:
+    ${{ "%.2f"|format(total_expenses) }}
+
+</div>
+
+<div class="total">
+
+    Remaining Balance:
+    ${{ "%.2f"|format(balance) }}
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+
+    <style>
+
+        body {
+            background-color: lightblue;
+            font-family: "Comic Sans MS", cursive;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-box {
+            background-color: skyblue;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            width: 320px;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px;
+            font-family: "Comic Sans MS", cursive;
+            border-radius: 8px;
+            border: 1px solid gray;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-family: "Comic Sans MS", cursive;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .login-btn {
+            background-color: green;
+            color: white;
+        }
+
+        .new-user-btn {
+            background-color: dodgerblue;
+            color: white;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="login-box">
+
+    <h1>Money Manager Login</h1>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+
+        <input type="text" name="username" placeholder="Username" required>
+
+        <input type="password" name="password" placeholder="Password" required>
+
+        <button class="login-btn" type="submit">
+            Login
+        </button>
+
+    </form>
+
+    <hr>
+
+    <button class="new-user-btn" onclick="toggleRegister()">
+        New User
+    </button>
+
+    <div id="registerForm" class="hidden">
+
+        <h2>Create User</h2>
+
+        <form method="POST" action="/add_user">
+
+            <input type="text"
+                   name="username"
+                   placeholder="New Username"
+                   required>
+
+            <input type="password"
+                   name="password"
+                   placeholder="New Password"
+                   required>
+
+            <button class="new-user-btn" type="submit">
+                Create Account
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+
+function toggleRegister() {
+
+    const form = document.getElementById("registerForm");
+
+    if (form.classList.contains("hidden")) {
+        form.classList.remove("hidden");
+    } else {
+        form.classList.add("hidden");
+    }
+}
+
+</script>
+
+</body>
+</html>
